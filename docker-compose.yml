@@ -1,0 +1,84 @@
+version: '2'
+services:
+  masterdata:
+    image: masterdata:latest
+    depends_on:
+     - rabbitmq
+     - couchbase
+    ports:
+     - "8080"
+    environment:
+     - SERVICE_NAME=masterdata
+     - SERVICE_TAGS=rest
+     - SERVICE_CHECK_HTTP=/masterdata/status.txt
+  
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+     - "15672"
+    environment:
+     - RABBITMQ_DEFAULT_USER=admin
+     - RABBITMQ_DEFAULT_PASS=kar.95424
+  
+  celery:
+   image: celery:feed
+   depends_on:
+    - rabbitmq
+    - couchbase
+
+  feed-python:
+    image: feed-python:${POD}
+    ports:
+     - "7000"
+    depends_on:
+      - rabbitmq
+      - couchbase
+
+  node-server:
+    image: node-server:${POD}
+    ports:
+     - "8081"
+    depends_on:
+     - rabbitmq
+     - redis
+     - couchbase
+    links:
+     - rabbitmq
+     - redis
+     - couchbase
+
+  node-consumer:
+    image: node-consumer:${POD}
+    depends_on:
+     - rabbitmq
+     - redis
+     - couchbase
+    links:
+     - rabbitmq
+     - redis
+     - couchbase
+
+  redis:
+    image: redis:3.2.1-alpine
+  
+  couchbase:
+    build: couchbase/
+    ports:
+     - "8091"
+    
+  haproxy:
+    image: dockercloud/haproxy
+    depends_on:
+     - rabbitmq
+     - redis
+     - couchbase 
+    links:
+      - masterdata
+      - node-server
+      - feed-python
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 80
+      - 1936
+
