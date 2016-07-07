@@ -38,7 +38,7 @@ if [ "$TYPE" = "worker" ]; then
     echo "Auto Rebalance: $AUTO_REBALANCE"
     sleep 10
     couchbase-cli rebalance -c $COUCHBASE_MASTER:8091 -u Administrator -p password --server-add=$IP
-    #curl -v -X POST -u Administrator:kar.95424 http://$COUCHBASE_MASTER:8091/controller/rebalance --data "knownNodes=$KNOWN_NODES&ejectedNodes="
+    #curl -v -X POST -u Administrator:password http://$COUCHBASE_MASTER:8091/controller/rebalance --data "knownNodes=$KNOWN_NODES&ejectedNodes="
   fi;
 fi;
 
